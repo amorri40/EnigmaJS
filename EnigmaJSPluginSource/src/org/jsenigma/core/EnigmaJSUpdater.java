@@ -180,8 +180,8 @@ public class EnigmaJSUpdater
 			return null;
 
 		revert = !noRevert.isSelected();
-		if (stable.isSelected()) return svn + "tags/update-stable"; //$NON-NLS-1$
-		if (testing.isSelected()) return svn + "tags/update-test"; //$NON-NLS-1$
+		if (stable.isSelected()) return svn + ""; //$NON-NLS-1$
+		if (testing.isSelected()) return svn + ""; //$NON-NLS-1$
 		return svn + "trunk"; //$NON-NLS-1$
 		}
 
