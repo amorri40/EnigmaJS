@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="MacRoman" standalone="no"?>
+<jardesc>
+    <jar path="/Users/alasdairmorrison/EnigmaJS/plugins/JSenigma.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/EnigmaJSPluginSource/lgmplugin.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" manifestLocation="/EnigmaJSPluginSource/META-INF/MANIFEST.MF" manifestVersion="1.0" reuseManifest="false" saveManifest="true" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
+        <javaElement handleIdentifier="=EnigmaJSPluginSource/src"/>
+        <file path="/EnigmaJSPluginSource/.project"/>
+        <folder path="/EnigmaJSPluginSource/META-INF"/>
+        <file path="/EnigmaJSPluginSource/.classpath"/>
+    </selectedElements>
+</jardesc>
