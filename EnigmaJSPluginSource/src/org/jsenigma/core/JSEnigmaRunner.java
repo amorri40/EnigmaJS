@@ -53,7 +53,7 @@ public class JSEnigmaRunner implements ActionListener {
 				}
 		});
 		
-		new Thread()
+		/*new Thread()
 		{
 			public void run()
 				{
@@ -72,7 +72,7 @@ public class JSEnigmaRunner implements ActionListener {
 					System.out.println("Update succesful!");
 					}
 				}
-		}.start();
+		}.start(); curently broken */
 	}
 
 	private void populateMenu() {

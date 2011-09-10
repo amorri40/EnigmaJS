@@ -23,15 +23,21 @@ import static org.lateralgm.main.Util.deRef;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.script.ScriptEngine;
@@ -44,8 +50,14 @@ import org.lateralgm.file.GmFile;
 import org.lateralgm.main.LGM;
 import org.lateralgm.resources.ResourceReference;
 import org.lateralgm.resources.Sprite;
+import org.lateralgm.resources.Background.PBackground;
+import org.lateralgm.resources.Font.PFont;
 import org.lateralgm.resources.GmObject.PGmObject;
+import org.lateralgm.resources.Path.PPath;
 import org.lateralgm.resources.Room.PRoom;
+import org.lateralgm.resources.Script.PScript;
+import org.lateralgm.resources.Sound.PSound;
+import org.lateralgm.resources.Sound.SoundKind;
 import org.lateralgm.resources.Sprite.PSprite;
 import org.lateralgm.resources.library.LibAction;
 import org.lateralgm.resources.sub.Action;
@@ -72,7 +84,7 @@ public class JSEnigmaWriter {
         engine = factory.getEngineByName("JavaScript");
         
         for (int i = 0; i < jsfiles.length; i++) {
-        	engine.eval(new java.io.FileReader("../EnigmaJS/mainjs/"+jsfiles[i]));
+        	engine.eval(new java.io.FileReader("./EnigmaJS/mainjs/"+jsfiles[i]));
 		}
 	}
 	
@@ -82,14 +94,14 @@ public class JSEnigmaWriter {
 		System.out.println("Starting convert to html5!");
 		numberOfErrors=0;
 		initJavascript();
-		BufferedWriter loadingfile = new BufferedWriter(new FileWriter("../EnigmaJS/ideeditjs/ideedit_loading.js"));
+		BufferedWriter loadingfile = new BufferedWriter(new FileWriter("./EnigmaJS/ideeditjs/ideedit_loading.js"));
 		populateSprites(loadingfile);
-		/*populateSounds();
-		populateBackgrounds();
-		populatePaths();
-		populateScripts();
-		populateFonts();
-		populateTimelines();*/
+		populateSounds(loadingfile);
+		populateBackgrounds(loadingfile);
+		populatePaths(loadingfile);
+		populateScripts(loadingfile);
+		populateFonts(loadingfile);
+		populateTimelines(loadingfile);
 		populateObjects(loadingfile);
 		populateRooms(loadingfile);
 		loadingfile.close();
@@ -99,6 +111,170 @@ public class JSEnigmaWriter {
 			System.out.println("Convert succesful");
 	}
 	
+	private static void populateTimelines(BufferedWriter loadingfile) throws IOException, ScriptException {
+		int size = i.timelines.size();
+		
+		if (size == 0) return;
+
+		org.lateralgm.resources.Timeline[] itl = i.timelines.toArray(new org.lateralgm.resources.Timeline[0]);
+		for (int t = 0; t < size; t++)
+			{
+			org.lateralgm.resources.Timeline it = itl[t];
+			loadingfile.write("timelineid_"+it.getId()+"="+it.getName()+"=function() {");
+
+			int nomo = it.moments.size();
+			if (nomo == 0) {loadingfile.write("};\n"); continue;}
+			loadingfile.write(" switch(this.timeline_position) {");
+			for (int m = 0; m < nomo; m++)
+				{
+				loadingfile.write(" case "+it.moments.get(m).stepNo+" :");
+				String code = getActionsCode(it.moments.get(m));
+				loadingfile.write(" {"+convertCode(code)+"} break;\n");
+				}
+			loadingfile.write("}};\n");
+			}
+	}
+
+	private static void populateFonts(BufferedWriter loadingfile) throws IOException {
+		int size = i.fonts.size();
+
+		if (size == 0) return;
+		loadingfile.write("var fontstructarray = {");
+		
+		org.lateralgm.resources.Font[] ifl = i.fonts.toArray(new org.lateralgm.resources.Font[0]);
+		for (int f = 0; f < size; f++)
+			{
+			org.lateralgm.resources.Font ifont = ifl[f];
+
+			if (f!=0) loadingfile.write(",");
+			
+			loadingfile.write(ifont.getId()+":{name:\""+ifont.getName()+"\",id:"+ifont.getId());
+			loadingfile.write(",fontName:\""+ifont.get(PFont.FONT_NAME)+"\",size:"+ifont.get(PFont.SIZE)+",bold:"+ifont.get(PFont.BOLD));
+			loadingfile.write(",italic:"+ifont.get(PFont.ITALIC)+",rangeMin:"+ifont.get(PFont.RANGE_MIN)+",rangeMax:"+ifont.get(PFont.RANGE_MAX));
+			loadingfile.write("}");
+			}
+		loadingfile.write("};\n");//end the fontstructarray
+	}
+
+	private static void populateScripts(BufferedWriter loadingfile) throws IOException, ScriptException {
+
+		int size = i.scripts.size();
+
+		if (size == 0) return;
+
+		
+		org.lateralgm.resources.Script[] isl = i.scripts.toArray(new org.lateralgm.resources.Script[0]);
+		for (int s = 0; s < isl.length; s++)
+			{
+			org.lateralgm.resources.Script io = isl[s];
+			loadingfile.write("scriptid_"+io.getId()+"="+io.getName()+"=function() {");
+			loadingfile.write(convertCode(io.get(PScript.CODE).toString()));
+			loadingfile.write("};\n");
+			}
+	}
+
+	private static void populatePaths(BufferedWriter loadingfile) throws IOException {
+		
+		int size = i.paths.size();
+		
+		if (size == 0) return;
+		loadingfile.write("var pathstructarray = {");
+		
+		org.lateralgm.resources.Path[] ipl = i.paths.toArray(new org.lateralgm.resources.Path[0]);
+		for (int p = 0; p < size; p++)
+			{
+			org.lateralgm.resources.Path ip = ipl[p];
+			
+			if (p!=0) loadingfile.write(",");
+			
+			loadingfile.write(ip.getId()+":{name:\""+ip.getName()+"\",id:"+ip.getId());
+			loadingfile.write(",smooth:"+ip.get(PPath.SMOOTH)+",closed:"+ip.get(PPath.CLOSED)+",precision:"+ip.get(PPath.PRECISION));
+			loadingfile.write(",points:[");
+
+			int points = ip.points.size();
+			if (points == 0) {loadingfile.write("]}"); continue;}
+
+			
+			
+			for (int pp = 0; pp < points; pp++)
+				{
+				org.lateralgm.resources.sub.PathPoint ipp = ip.points.get(pp);
+				if (pp!=0) loadingfile.write(",");
+				loadingfile.write("{x:"+ipp.getX()+",y:"+ipp.getY()+",speed:"+ipp.getSpeed()+"}");
+				}
+			loadingfile.write("]}");
+			}
+		loadingfile.write("};\n");//end the pathstructarray
+	}
+
+	private static void populateBackgrounds(BufferedWriter loadingfile) throws IOException {
+		
+		int size = i.backgrounds.size();
+		if (size == 0) return;
+		loadingfile.write("var backgroundstructarray = {");
+		
+		/*
+		 * Create folder if it doesn't exist
+		 */
+		File folder = new File("./EnigmaJS/res/backgrounds");  
+		if (!folder.exists()) folder.mkdir(); 
+
+		org.lateralgm.resources.Background[] ibl = i.backgrounds.toArray(new org.lateralgm.resources.Background[0]);
+		for (int s = 0; s < size; s++)
+			{
+			org.lateralgm.resources.Background ib = ibl[s];
+
+			if (s!=0) loadingfile.write(",");
+			loadingfile.write(ib.getId()+":{name:\""+ib.getName()+"\",id:"+ib.getId());
+			loadingfile.write(",transparent:"+ib.get(PBackground.TRANSPARENT)+",smoothEdges:"+ib.get(PBackground.SMOOTH_EDGES)+",preload:"+ib.get(PBackground.PRELOAD));
+
+			
+			File out = new File("./EnigmaJS/res/backgrounds/"+ib.getName()+".png");
+				BufferedImage img = ib.getBackgroundImage();
+		        
+			ImageIO.write(img, "PNG", out);
+			
+			loadingfile.write("}");
+			}
+		loadingfile.write("};\n");//end the backgroundstructarray
+	}
+
+	private static void populateSounds(BufferedWriter loadingfile) throws IOException {
+		
+		int size = i.sounds.size();
+		if (size == 0) return;
+		loadingfile.write("var soundstructarray = {");
+		
+		/*
+		 * Create folder if it doesn't exist
+		 */
+		File folder = new File("./EnigmaJS/res/sounds");  
+		if (!folder.exists()) folder.mkdir(); 
+
+		org.lateralgm.resources.Sound[] isl = i.sounds.toArray(new org.lateralgm.resources.Sound[0]);
+		for (int s = 0; s < size; s++)
+			{
+			org.lateralgm.resources.Sound is = isl[s];
+			if (s!=0) loadingfile.write(",");
+			loadingfile.write(is.getId()+":{name:\""+is.getName()+"\",id:"+is.getId());//+",kind:"+SOUND_CODE.get(is.get(PSound.KIND)));
+			loadingfile.write(",fileType:\""+is.get(PSound.FILE_TYPE)+"\",fileName:\""+is.get(PSound.FILE_NAME)+"\"");
+			loadingfile.write(",chorus:"+is.get(PSound.CHORUS)+",echo:"+is.get(PSound.ECHO)+",flanger:"+is.get(PSound.FLANGER));
+			loadingfile.write(",gargle:"+is.get(PSound.GARGLE)+",reverb:"+is.get(PSound.GARGLE)+",volume:"+is.get(PSound.VOLUME));
+			loadingfile.write(",pan:"+is.get(PSound.PAN)+",preload:"+is.get(PSound.PRELOAD));
+			
+
+			if (is.data == null || is.data.length==0)
+				{
+				continue;
+				}
+			FileOutputStream sndfile = new FileOutputStream("./EnigmaJS/res/sounds/"+is.getName()+is.get(PSound.FILE_TYPE));
+			sndfile.write(is.data);
+			sndfile.close();
+			loadingfile.write("}");
+			}
+		loadingfile.write("};\n");//end the soundstructarray
+	}
+
 	protected static ResNode root;
 
 	private static void populateRooms(BufferedWriter loadingfile) throws IOException, ScriptException {
@@ -279,6 +455,7 @@ public class JSEnigmaWriter {
 			loadingfile.write("};\n");//end of object
 			}
 	}
+	
 
 	private static String convertCode(String code) throws FileNotFoundException, ScriptException {
         code=code.replace("\r\n", " ").replace("\n", " ").replace("\"","\\\"");
@@ -294,7 +471,7 @@ public class JSEnigmaWriter {
         //return engine.get("output").toString();
         	//normally it would just return, but lets fix some errors
         	String fixed=engine.get("output").toString();
-        	//fixed=fixed.replace("this.true","true").replace("this.false","false");
+        	fixed=fixed.replace("this.true","true").replace("this.false","false");
         	fixed=fixed.replace("var (", "(");
         	//fixed=fixed.replace("{", ";{"); //remove this asap
         	return fixed;
@@ -452,10 +629,17 @@ public class JSEnigmaWriter {
 	}
 
 	private static void populateSprites(BufferedWriter loadingfile) throws IOException {
-		loadingfile.write("var spritestructarray = {");
+		
 		
 		int size = i.sprites.size();
 		if (size == 0) return;
+		loadingfile.write("var spritestructarray = {");
+		
+		/*
+		 * Create folder if it doesn't exist
+		 */
+		File folder = new File("./EnigmaJS/res/sprites");  
+		if (!folder.exists()) folder.mkdir(); 
 		
 		org.lateralgm.resources.Sprite[] isl = i.sprites.toArray(new org.lateralgm.resources.Sprite[0]);
 		for (int s = 0; s < size; s++)
@@ -479,7 +663,7 @@ public class JSEnigmaWriter {
 			Graphics2D spritesheet = offscreenimage.createGraphics();
 			
 			
-			File out = new File("/Users/alasdairmorrison/Documents/workspace/EnigmaJS/res/sprites/"+is.getName()+".png");
+			File out = new File("./EnigmaJS/res/sprites/"+is.getName()+".png");
 			for (int i = 0; i < is.subImages.size(); i++)
 				{
 				BufferedImage img = is.subImages.get(i);
