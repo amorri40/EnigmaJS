@@ -17,6 +17,8 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+enigma.global["current_instance"]=null;
+
 var argument_relative=false;
 /*global:     background_alpha
 global:     background_blend

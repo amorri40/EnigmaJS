@@ -29,13 +29,14 @@ enigma.global.action_if_variable=function(variable,value,operation) {
 };
 
 enigma.global.action_move_to=function(xx, yy) {
+	var instance=enigma.global.current_instance;
     if (argument_relative) {
-        this.x+=xx;
-        this.y+=yy;
+    	instance.x+=xx;
+    	instance.y+=yy;
     }
     else {
-        this.x=xx;
-        this.y=yy;
+    	instance.x=xx;
+    	instance.y=yy;
 	}
 };
 

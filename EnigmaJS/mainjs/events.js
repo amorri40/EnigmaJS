@@ -261,19 +261,15 @@ var rarray = (function()
       // Linear event iteration
       for (var lei = 0; lei < linear_events.length; lei++)
       {
+    	  if (linear_events[lei].handler) { linear_events[lei].handler(); continue;}
     	  if (linear_events[lei].callbacks.length==0) continue; 
-        
-        {
-          if (!linear_events[lei].handler)
+          
             for (ENIGMA_INSTANCE_EVENT_ITERATOR in linear_events[lei].callbacks)
               {
             	if (!linear_events[lei].supercheck || linear_events[lei].supercheck(linear_events[lei].callbacks[ENIGMA_INSTANCE_EVENT_ITERATOR].id2))
-            	linear_events[lei].callbacks[ENIGMA_INSTANCE_EVENT_ITERATOR]();
-            	
+            	{enigma.global.current_instance=linear_events[lei].callbacks[ENIGMA_INSTANCE_EVENT_ITERATOR].whom;
+            		linear_events[lei].callbacks[ENIGMA_INSTANCE_EVENT_ITERATOR]();}
               }
-          else
-            linear_events[lei].handler();
-        }
       }
     }
   ,
@@ -286,11 +282,13 @@ var rarray = (function()
     	  // stacked event
     	  linear_events[ev1.lin_id].callbacks[id] = callback.bind(whom);
     	  linear_events[ev1.lin_id].callbacks[id].id2=id2;
+    	  linear_events[ev1.lin_id].callbacks[id].whom=whom; //tgmg temp
       }
       else {
     	 
       linear_events[ev2.lin_id].callbacks[id] = callback.bind(whom);
       linear_events[ev2.lin_id].callbacks[id].id2=id2;
+      linear_events[ev2.lin_id].callbacks[id].whom=whom; //tgmg
       }
     }
   ];

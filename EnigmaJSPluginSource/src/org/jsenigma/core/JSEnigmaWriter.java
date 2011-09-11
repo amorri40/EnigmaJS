@@ -75,7 +75,7 @@ public class JSEnigmaWriter {
 	protected static GmFile i;
 	public static ScriptEngineManager factory;
 	public static ScriptEngine engine;
-	private static String[] jsfiles = {"Canvassystem.js","parse_basics.js","parse_system.js","parser.js","dialog.js","actions.js","math.js","input.js"};
+	private static String[] jsfiles = {"Canvassystem.js","parse_basics.js","parse_system.js","parser.js","dialog.js","objects.js","actions.js","math.js","input.js"};
 	private static String eventname;
 	private static String currentObject;
 	
@@ -444,7 +444,7 @@ public class JSEnigmaWriter {
 					if (ie.mainId==0) // create event?
 						loadingfile.write(" this.event_"+ie.mainId+"_"+id+"();");
 					else //link in the event
-					loadingfile.write("enigma.system.event_loop.link_event("+io.getId()+","+ie.mainId+","+id+",this.event_"+ie.mainId+"_"+id+",this);\n");
+					loadingfile.write("enigma.system.event_loop.link_event(this.id,"+ie.mainId+","+id+",this.event_"+ie.mainId+"_"+id+",this);\n");
 					}
 				}
 			//write the draw event
@@ -458,6 +458,7 @@ public class JSEnigmaWriter {
 	
 
 	private static String convertCode(String code) throws FileNotFoundException, ScriptException {
+		if (code.contains("lang=javascript")) return code;
         code=code.replace("\r\n", " ").replace("\n", " ").replace("\"","\\\"");
         
         String output = engine.eval("enigma.parser.parse_edl(\""+code+"\"); this.output=enigma.parser.code_out; this.error=enigma.parser.err;").toString();
@@ -474,6 +475,7 @@ public class JSEnigmaWriter {
         	fixed=fixed.replace("this.true","true").replace("this.false","false");
         	fixed=fixed.replace("var (", "(");
         	fixed=fixed.replace("{", ";{"); //remove this asap
+        	//fixed=fixed.replace("enigma.global.action_", "this.prototype.action_");
         	return fixed;
         }
 	}
