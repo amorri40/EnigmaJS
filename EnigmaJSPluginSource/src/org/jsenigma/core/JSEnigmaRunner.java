@@ -38,7 +38,7 @@ public class JSEnigmaRunner implements ActionListener {
 	private JMenuItem run;
 	public static boolean SHUTDOWN;
 	public static final File WORKDIR = LGM.workDir.getParentFile();
-	public EnigmaJSFrame ef = new EnigmaJSFrame();
+	public static EnigmaJSFrame ef = new EnigmaJSFrame();
 
 	public JSEnigmaRunner() {
 		populateMenu();

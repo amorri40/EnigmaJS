@@ -18,6 +18,8 @@
  */
 var argument_relative=false;
 
+
+
 enigma.global.action_if_variable=function(variable,value,operation) {
     switch (operation)
     {
