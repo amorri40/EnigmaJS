@@ -48,7 +48,7 @@ enigma.global.keyboard_check=function(key)
     return 1;
   }
 
-return keybdstatus[key & 0xFF];
+return keybdstatus[key];
 };
 
 enigma.global.keyboard_check_pressed=function(key)
@@ -63,7 +63,7 @@ enigma.global.keyboard_check_pressed=function(key)
       if (keybdstatus[i] && !last_keybdstatus[i]) return 0;
     return 1;
   }
-  return keybdstatus[key & 0xFF] && !last_keybdstatus[key & 0xFF];
+  return keybdstatus[key] && !last_keybdstatus[key];
 };
 
 enigma.global.keyboard_check_released=function(key)
@@ -78,7 +78,7 @@ enigma.global.keyboard_check_released=function(key)
 			if (!keybdstatus[i] && last_keybdstatus[i]) return 0;
 		return 1;
   }
-	return keybdstatus[key & 0xFF]==0 && last_keybdstatus[key & 0xFF]==1;
+	return keybdstatus[key]==0 && last_keybdstatus[key]==1;
 };
 
 
@@ -86,7 +86,7 @@ enigma.global.keyboard_check_released=function(key)
 
 
 function handleKeyDown(evt){
-var actualKey = keymap[keycode]; //get the actual keycode if its different
+var actualKey = evt.keyCode;//keymap[keycode]; //get the actual keycode if its different
 	
 	if (keybdstatus[actualKey]==1) {
 		keybdstatus[actualKey]=1; //its already updated the last_keybdstatus
@@ -100,11 +100,11 @@ var actualKey = keymap[keycode]; //get the actual keycode if its different
 
 function handleKeyUp(evt){
 	
-	var actualKey =keymap[keycode]; //get the actual keycode if its different
-	cocoa_keybdstatus[actualKey]=0;
+	var actualKey =evt.keyCode;//keymap[keycode]; //get the actual keycode if its different
+	keybdstatus[actualKey]=0;
 }
 
-function io_handle() {
+enigma.global.io_handle=function() {
 
 	for(var i=0;i<256;i++){
 		if (last_keybdstatus[i]==0 && keybdstatus[i]==1) {

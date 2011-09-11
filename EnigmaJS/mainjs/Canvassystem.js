@@ -56,9 +56,10 @@ var room_bgcolor = 0;
 enigma.system.enigma_frame_timer = function () {
   setTimeout("enigma.system.enigma_frame_timer()",1000/enigma.global.room_speed);
   enigma.system.event_loop();
+  enigma.global.io_handle();
 };
 
-enigma.system.getIterator=function() {
+enigma.system.getIterator=function() { //tempt to make it compile
 	return new function() {this.atEnd=function() {return true;};this.goNext=function() {}}
 	
 }

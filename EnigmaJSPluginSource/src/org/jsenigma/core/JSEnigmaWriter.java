@@ -138,7 +138,7 @@ public class JSEnigmaWriter {
 	private static void populateFonts(BufferedWriter loadingfile) throws IOException {
 		int size = i.fonts.size();
 
-		if (size == 0) return;
+		if (size == 0) {loadingfile.write("var fontstructarray = {}; //no fonts \n");return;}
 		loadingfile.write("var fontstructarray = {");
 		
 		org.lateralgm.resources.Font[] ifl = i.fonts.toArray(new org.lateralgm.resources.Font[0]);
@@ -177,7 +177,7 @@ public class JSEnigmaWriter {
 		
 		int size = i.paths.size();
 		
-		if (size == 0) return;
+		if (size == 0) {loadingfile.write("var pathstructarray = {}; //no paths \n"); return;}
 		loadingfile.write("var pathstructarray = {");
 		
 		org.lateralgm.resources.Path[] ipl = i.paths.toArray(new org.lateralgm.resources.Path[0]);
@@ -210,7 +210,7 @@ public class JSEnigmaWriter {
 	private static void populateBackgrounds(BufferedWriter loadingfile) throws IOException {
 		
 		int size = i.backgrounds.size();
-		if (size == 0) return;
+		if (size == 0) {loadingfile.write("var backgroundstructarray = {}; //no backgrounds \n");return;}
 		loadingfile.write("var backgroundstructarray = {");
 		
 		/*
@@ -242,7 +242,7 @@ public class JSEnigmaWriter {
 	private static void populateSounds(BufferedWriter loadingfile) throws IOException {
 		
 		int size = i.sounds.size();
-		if (size == 0) return;
+		if (size == 0) {loadingfile.write("var soundstructarray = {}; //No sounds \n"); return;}
 		loadingfile.write("var soundstructarray = {");
 		
 		/*
@@ -298,7 +298,7 @@ public class JSEnigmaWriter {
 			{
 			org.lateralgm.resources.Room is = irl[s];
 			loadingfile.write("\nenigma.rooms."+is.getName()+" = function() {");
-			loadingfile.write("this.name=\""+is.getName()+"\"; this.id="+is.getId()+"; this.caption="+is.get(PRoom.CAPTION)+"; this.width="+is.get(PRoom.WIDTH)+"; this.height="+is.get(PRoom.HEIGHT)+";");
+			loadingfile.write("this.name=\""+is.getName()+"\"; this.id="+is.getId()+"; this.caption=\""+is.get(PRoom.CAPTION)+"\"; this.width="+is.get(PRoom.WIDTH)+"; this.height="+is.get(PRoom.HEIGHT)+";");
 			loadingfile.write("this.speed="+is.get(PRoom.SPEED)+"; this.persistent="+is.get(PRoom.PERSISTENT)+"; this.backgroundColor="+ARGBtoRGBA(((Color) is.get(PRoom.BACKGROUND_COLOR)).getRGB())+";");
 			loadingfile.write("this.drawBackgroundColor="+is.get(PRoom.DRAW_BACKGROUND_COLOR)+"; this.enableViews="+is.get(PRoom.ENABLE_VIEWS)+";\n");
 			
@@ -394,7 +394,7 @@ public class JSEnigmaWriter {
 				} // tiles*/
 			loadingfile.write("};\n");
 			} // rooms
-		loadingfile.write("var room = new enigma.rooms.rm_main();"); //for now
+		loadingfile.write("var room = new enigma.rooms."+irooms.get(0).getName()+"();"); //for now
 	}
 
 	private static void populateObjects(BufferedWriter loadingfile) throws Exception {
@@ -473,7 +473,7 @@ public class JSEnigmaWriter {
         	String fixed=engine.get("output").toString();
         	fixed=fixed.replace("this.true","true").replace("this.false","false");
         	fixed=fixed.replace("var (", "(");
-        	//fixed=fixed.replace("{", ";{"); //remove this asap
+        	fixed=fixed.replace("{", ";{"); //remove this asap
         	return fixed;
         }
 	}
@@ -632,7 +632,7 @@ public class JSEnigmaWriter {
 		
 		
 		int size = i.sprites.size();
-		if (size == 0) return;
+		if (size == 0) {loadingfile.write("var spritestructarray = {}; //no sprites \n"); return;}
 		loadingfile.write("var spritestructarray = {");
 		
 		/*

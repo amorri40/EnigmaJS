@@ -19,6 +19,8 @@ along with this code. If not, see <http://www.gnu.org/licenses/>
 
 enigma.global.show_message=function(message) {
   alert(message);
+  //clear the input arrays
+  enigma.global.input_initialize();
 }
 enigma.global.show_message.argc_min = 1;
 enigma.global.show_message.argc_max = 1;
