@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
 LGM-Plugin: org.jsenigma.core.JSEnigmaRunner
-Class-Path: ../lgm16b4.jar ./shared/svnkit.jar
+Class-Path: ../lgm16b4.jar ./shared/svnkit.jar ./LGMUtility.jar
+Main-Class: org.jsenigma.core.EnigmaJSCli
 

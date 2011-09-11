@@ -475,7 +475,7 @@ public class JSEnigmaWriter {
         	fixed=fixed.replace("this.true","true").replace("this.false","false");
         	fixed=fixed.replace("var (", "(");
         	fixed=fixed.replace("{", ";{"); //remove this asap
-        	//fixed=fixed.replace("enigma.global.action_", "this.prototype.action_");
+        	fixed=fixed.replace("this.argument_relative", "argument_relative");
         	return fixed;
         }
 	}
