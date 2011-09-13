@@ -24,3 +24,8 @@ enigma.global.show_message=function(message) {
 }
 enigma.global.show_message.argc_min = 1;
 enigma.global.show_message.argc_max = 1;
+
+enigma.global.get_string=function(str, def){
+	var ans = prompt(str,def);
+	return ans;
+}

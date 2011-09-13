@@ -81,6 +81,7 @@ public class EnigmaJSCli
 		InitReturn r = new InitReturn();
 		LibManager.autoLoad();
 		r.root = root == null ? new ResNode("Root",(byte) 0,null,null) : root; //$NON-NLS-1$;
+		System.out.println("filename:"+fn);
 		r.f = GmFileReader.readGmFile(fn,r.root);
 		return r;
 		}

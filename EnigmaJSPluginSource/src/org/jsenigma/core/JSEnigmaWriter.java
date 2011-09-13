@@ -69,12 +69,13 @@ import org.lateralgm.resources.sub.Instance.PInstance;
 import org.lateralgm.resources.sub.Tile.PTile;
 import org.lateralgm.resources.sub.View.PView;
 
+
 public class JSEnigmaWriter {
 
 	protected static GmFile i;
 	public static ScriptEngineManager factory;
 	public static ScriptEngine engine;
-	private static String[] jsfiles = { "Canvassystem.js", "parse_basics.js",
+	private static String[] jsfiles = { "Canvassystem.js", "Canvasdrawing.js", "parse_basics.js",
 			"parse_system.js", "parser.js", "dialog.js", "objects.js",
 			"actions.js", "math.js", "input.js" };
 	private static String eventname;
@@ -109,6 +110,17 @@ public class JSEnigmaWriter {
 		populateObjects(loadingfile);
 		populateRooms(loadingfile);
 		loadingfile.close();
+		engine.eval("missing=getMissingFunctions();");
+		engine.eval("output=writeEnigmaJSOutputFile();");
+		System.out.println(engine.get("missing").toString());
+		
+		BufferedWriter outputfile = new BufferedWriter(new FileWriter(
+		"./enigmajsoutput.txt"));
+		outputfile.write(numberOfErrors+"\n");
+		outputfile.write(engine.get("output").toString());
+		outputfile.close();
+		
+		
 		if (numberOfErrors > 0)
 			System.out.println("Failed to convert with " + numberOfErrors
 					+ " errors");
@@ -254,7 +266,7 @@ public class JSEnigmaWriter {
 		 * Create folder if it doesn't exist
 		 */
 		File folder = new File("./EnigmaJS/res/backgrounds");
-		if (!folder.exists())
+		if (folder.exists()) deleteFolder(folder);
 			folder.mkdir();
 
 		org.lateralgm.resources.Background[] ibl = i.backgrounds
@@ -295,7 +307,7 @@ public class JSEnigmaWriter {
 		 * Create folder if it doesn't exist
 		 */
 		File folder = new File("./EnigmaJS/res/sounds");
-		if (!folder.exists())
+		if (folder.exists()) deleteFolder(folder);
 			folder.mkdir();
 
 		org.lateralgm.resources.Sound[] isl = i.sounds
@@ -761,8 +773,9 @@ public class JSEnigmaWriter {
 		 * Create folder if it doesn't exist
 		 */
 		File folder = new File("./EnigmaJS/res/sprites");
-		if (!folder.exists())
+		if (folder.exists()) deleteFolder(folder);
 			folder.mkdir();
+			
 
 		org.lateralgm.resources.Sprite[] isl = i.sprites
 				.toArray(new org.lateralgm.resources.Sprite[0]);
@@ -813,6 +826,18 @@ public class JSEnigmaWriter {
 		// end the spritestructarray
 	}
 
+	
+	public static void deleteFolder (File dirPath) {
+	    String [] files = dirPath.list ();
+
+	    for (int i = 0; i < files.length; i++) {
+	      File file = new File (dirPath, files[i]);
+	      if (file.isDirectory ())
+	    	  deleteFolder (file);
+	      file.delete ();
+	    }
+	  }
+	
 	public static int toId(Object obj, int def) {
 		ResourceReference<?> rr = (ResourceReference<?>) obj;
 		if (deRef(rr) != null)
