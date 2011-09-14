@@ -75,9 +75,9 @@ public class JSEnigmaWriter {
 	protected static GmFile i;
 	public static ScriptEngineManager factory;
 	public static ScriptEngine engine;
-	private static String[] jsfiles = { "Canvassystem.js", "Canvasdrawing.js", "parse_basics.js",
-			"parse_system.js", "parser.js", "dialog.js", "objects.js",
-			"actions.js", "math.js", "input.js" };
+	private static String[] jsfiles = { "Canvassystem.js", "Canvasdrawing.js", "/Parser/parse_basics.js",
+			"/Parser/parse_system.js", "/Parser/parser.js", "/Platform/dialog.js", "/ide_edit/objects.js",
+			"/Main/actions.js", "/Main/math.js", "/Main/input.js" };
 	private static String eventname;
 	private static String currentObject;
 
@@ -87,7 +87,7 @@ public class JSEnigmaWriter {
 		engine = factory.getEngineByName("JavaScript");
 
 		for (int i = 0; i < jsfiles.length; i++) {
-			engine.eval(new java.io.FileReader("./EnigmaJS/mainjs/"
+			engine.eval(new java.io.FileReader("./EnigmaJSLibrary"
 					+ jsfiles[i]));
 		}
 	}
@@ -99,7 +99,7 @@ public class JSEnigmaWriter {
 		numberOfErrors = 0;
 		initJavascript();
 		BufferedWriter loadingfile = new BufferedWriter(new FileWriter(
-				"./EnigmaJS/ideeditjs/ideedit_loading.js"));
+				"./EnigmaJSLibrary/ide_edit/ideedit_loading.js"));
 		populateSprites(loadingfile);
 		populateSounds(loadingfile);
 		populateBackgrounds(loadingfile);
@@ -265,7 +265,7 @@ public class JSEnigmaWriter {
 		/*
 		 * Create folder if it doesn't exist
 		 */
-		File folder = new File("./EnigmaJS/res/backgrounds");
+		File folder = new File("./EnigmaJSLibrary/res/backgrounds");
 		if (folder.exists()) deleteFolder(folder);
 			folder.mkdir();
 
@@ -282,7 +282,7 @@ public class JSEnigmaWriter {
 					+ ",smoothEdges:" + ib.get(PBackground.SMOOTH_EDGES)
 					+ ",preload:" + ib.get(PBackground.PRELOAD));
 
-			File out = new File("./EnigmaJS/res/backgrounds/" + ib.getName()
+			File out = new File("./EnigmaJSLibrary/res/backgrounds/" + ib.getName()
 					+ ".png");
 			BufferedImage img = ib.getBackgroundImage();
 
@@ -306,7 +306,7 @@ public class JSEnigmaWriter {
 		/*
 		 * Create folder if it doesn't exist
 		 */
-		File folder = new File("./EnigmaJS/res/sounds");
+		File folder = new File("./EnigmaJSLibrary/res/sounds");
 		if (folder.exists()) deleteFolder(folder);
 			folder.mkdir();
 
@@ -333,7 +333,7 @@ public class JSEnigmaWriter {
 				continue;
 			}
 			FileOutputStream sndfile = new FileOutputStream(
-					"./EnigmaJS/res/sounds/" + is.getName()
+					"./EnigmaJSLibrary/res/sounds/" + is.getName()
 							+ is.get(PSound.FILE_TYPE));
 			sndfile.write(is.data);
 			sndfile.close();
@@ -772,7 +772,7 @@ public class JSEnigmaWriter {
 		/*
 		 * Create folder if it doesn't exist
 		 */
-		File folder = new File("./EnigmaJS/res/sprites");
+		File folder = new File("./EnigmaJSLibrary/res/sprites");
 		if (folder.exists()) deleteFolder(folder);
 			folder.mkdir();
 			
@@ -809,7 +809,7 @@ public class JSEnigmaWriter {
 					BufferedImage.TYPE_INT_ARGB);
 			Graphics2D spritesheet = offscreenimage.createGraphics();
 
-			File out = new File("./EnigmaJS/res/sprites/" + is.getName()
+			File out = new File("./EnigmaJSLibrary/res/sprites/" + is.getName()
 					+ ".png");
 			for (int i = 0; i < is.subImages.size(); i++) {
 				BufferedImage img = is.subImages.get(i);
