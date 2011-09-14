@@ -75,20 +75,26 @@ public class JSEnigmaWriter {
 	protected static GmFile i;
 	public static ScriptEngineManager factory;
 	public static ScriptEngine engine;
-	private static String[] jsfiles = { "Canvassystem.js", "Canvasdrawing.js", "/Parser/parse_basics.js",
-			"/Parser/parse_system.js", "/Parser/parser.js", "/Platform/dialog.js", "/ide_edit/objects.js",
-			"/Main/actions.js", "/Main/math.js", "/Main/input.js" };
+	private static String[] jsfiles = { "/Main/system.js","/Graphics/Canvas/Canvasmain.js", "/Graphics/Canvas/Canvasdrawing.js", "/Parser/parse_basics.js",
+			"/Parser/parse_system.js", "/Parser/parser_tgmg.js", "/Parser/parser.js", "/Platform/dialog.js", "/Main/object.js",
+			"/Universal/actions.js", "/Universal/math.js", "/Universal/input.js" };
 	private static String eventname;
 	private static String currentObject;
 
-	public static void initJavascript() throws FileNotFoundException,
-			ScriptException {
+	public static void initJavascript() throws FileNotFoundException
+			 {
 		factory = new ScriptEngineManager();
 		engine = factory.getEngineByName("JavaScript");
-
-		for (int i = 0; i < jsfiles.length; i++) {
+		int i=0;
+		try {
+		for (i = 0; i < jsfiles.length; i++) {
 			engine.eval(new java.io.FileReader("./EnigmaJSLibrary"
 					+ jsfiles[i]));
+		}
+		} catch (ScriptException e) {
+			
+			System.out.println("File:"+jsfiles[i]+e.getMessage());
+			e.printStackTrace();
 		}
 	}
 

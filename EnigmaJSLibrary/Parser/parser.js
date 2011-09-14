@@ -557,10 +557,11 @@ enigma.parser.parse_edl = (function()
         case ps.TT.VARNAME:
           if (lex[i+1].type == ps.TT.BEGINPARENTH)
           {
-            ps.err = "Unknown function or script `" + lex[i].content + "'";
+            /*ps.err = "Unknown function or script `" + lex[i].content + "'";
             if (lex[lex[i+1].match+1].type == ps.TT.DECIMAL)
               ps.err += ": use semicolon to separate object ID and variable name.";
-            return lex[i].pos;
+            return lex[i].pos; */ //remove erroring on missing function
+            missing_functions[lex[i].content]++;
           }
           break;
         case ps.TT.FUNCTION:

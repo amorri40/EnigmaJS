@@ -17,26 +17,7 @@ You should have recieved a copy of the GNU General Public License
 along with this code. If not, see <http://www.gnu.org/licenses/>
 \*************************************************************/
 
-missing_functions=[];//TGMG
-getMissingFunctions=function() {
-	var blank_functions_string="";
-	for (func in missing_functions) 
-	{
-		if (func.indexOf("script___") == -1) {
-		blank_functions_string+="\n enigma.global."+func+"=function(){}\n";
-		}
-	}
-	return blank_functions_string;
-}; //TGMG
-writeEnigmaJSOutputFile=function() {
-	var outputfile=""
-	for (func in missing_functions) 
-	{
-		if (func.indexOf("script___") == -1)
-		outputfile+=func+"\n";
-	}
-	return outputfile;
-};
+
 
 enigma.parser.parse_edl = (function()
 {
