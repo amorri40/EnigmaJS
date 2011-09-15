@@ -63,7 +63,7 @@ var room; //current room id
 enigma.global.room_goto=function(indx)
 {
 	if (indx < 0 || indx >= room_idmax || !roomarray[indx])
-		return show_error("Attempting to go to nonexisting room");
+		return enigma.global.show_error("Attempting to go to nonexisting room");
 	roomarray[indx].gotome();
 	return 0;
 };
@@ -78,7 +78,7 @@ enigma.global.room_restart=function()
 enigma.global.room_get_name=function(index)
 {
 	if (index < 0 || index >= room_idmax || !roomarray[index])
-		return show_error("Room index out of range");
+		return enigma.global.show_error("Room index out of range");
 	return roomarray[index].name;
 };
 
@@ -92,8 +92,7 @@ enigma.global.room_goto_first=function()
     var rit = roomarray[roomorder[0]];
     if (0 >= roomorder.length) 
     	return enigma.global.show_error("Game must have at least one room to do anything");
-    //rit.gotome();
-    new rit;
+    rit.gotome();
     return 0;
 }
 
@@ -101,10 +100,10 @@ enigma.global.room_goto_next=function()
 {
     var rit = roomarray[room];
 
-    rit = roomarray[roomorder[rit.order + 1]];
-
     if (rit.order+1 < 0 || rit.order+1 >= roomorder.length) 
-		return show_error("Going to next room after last");
+		return enigma.global.show_error("Going to next room after last");
+    
+    rit = roomarray[roomorder[rit.order + 1]];
 
     rit.gotome();
     return 0;
@@ -114,9 +113,10 @@ enigma.global.room_goto_previous=function()
 {
     var rit = roomarray[room];
 
-    rit = roomarray[roomorder[rit.order - 1]];
     if (rit.order-1 < 0 || rit.order-1 >= roomorder.length) 
-		return show_error("Going to next room after last");
+		return enigma.global.show_error("Going to previous room after first");
+    
+    rit = roomarray[roomorder[rit.order - 1]];
     
     rit.gotome();
     return 0;

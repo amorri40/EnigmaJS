@@ -77,7 +77,7 @@ public class JSEnigmaWriter {
 	public static ScriptEngine engine;
 	private static String[] jsfiles = { "/Main/system.js","/Graphics/Canvas/Canvasmain.js", "/Graphics/Canvas/Canvasdrawing.js", "/Parser/parse_basics.js",
 			"/Parser/parse_system.js", "/Parser/parser_tgmg.js", "/Parser/parser.js", "/Platform/dialog.js", "/Main/object.js",
-			/*"/Universal/actions.js",*/ "/Universal/math.js", "/Universal/input.js" };
+			/*"/Universal/actions.js",*/ "/Universal/math.js", "/Universal/input.js", "/Universal/rooms.js" };
 	private static String eventname;
 	private static String currentObject;
 
@@ -397,27 +397,27 @@ public class JSEnigmaWriter {
 			 * Start writing room code
 			 */
 			loadingfile.write("\n " + is.getId()
-					+ ":function() {");
+					+ ": {");
 			
-			loadingfile.write("this.name=\"" + is.getName() + "\"; this.id="
-					+ is.getId() + "; this.caption=\"" + is.get(PRoom.CAPTION)
-					+ "\"; this.width=" + is.get(PRoom.WIDTH)
-					+ "; this.height=" + is.get(PRoom.HEIGHT) + ";");
-			loadingfile.write("this.speed="
+			loadingfile.write("name:\"" + is.getName() + "\", id:"
+					+ is.getId() + ", caption:\"" + is.get(PRoom.CAPTION)
+					+ "\", width:" + is.get(PRoom.WIDTH)
+					+ ", height:" + is.get(PRoom.HEIGHT) + ",");
+			loadingfile.write("speed:"
 					+ is.get(PRoom.SPEED)
-					+ "; this.persistent="
+					+ ", persistent:"
 					+ is.get(PRoom.PERSISTENT)
-					+ "; this.backgroundColor="
+					+ ", backgroundColor:"
 					+ ARGBtoRGBA(((Color) is.get(PRoom.BACKGROUND_COLOR))
-							.getRGB()) + ";");
-			loadingfile.write("this.drawBackgroundColor="
+							.getRGB()) + ",");
+			loadingfile.write("drawBackgroundColor:"
 					+ is.get(PRoom.DRAW_BACKGROUND_COLOR)
-					+ "; this.enableViews=" + is.get(PRoom.ENABLE_VIEWS)
-					+ ";\n");
+					+ ", enableViews:" + is.get(PRoom.ENABLE_VIEWS)
+					+ ",order:"+s+",\n");
 
-			loadingfile.write("\nthis.creationCode=function(){");
+			loadingfile.write("\ncreationCode:function(){");
 			loadingfile.write(convertCode("" + is.get(PRoom.CREATION_CODE)));
-			loadingfile.write("};\n");
+			loadingfile.write("},\n");
 
 			/*
 			 * or.backgroundDefCount = is.backgroundDefs.size(); if
@@ -463,7 +463,7 @@ public class JSEnigmaWriter {
 				 * iv.properties.get(PView.SPEED_V); ov.objectId =
 				 * toId(iv.properties.get(PView.OBJECT),-1); } }
 				 */
-			loadingfile.write("this.gotome=function() {");
+			loadingfile.write("gotome:function() {room=this.id;");
 			int instanceCount = is.instances.size();
 			if (instanceCount != 0) {
 				for (int i = 0; i < instanceCount; i++) {
@@ -480,7 +480,7 @@ public class JSEnigmaWriter {
 					// ii.properties.get(PInstance.CREATION_CODE);
 				}
 			}
-			loadingfile.write("}; this.gotome();");
+			loadingfile.write("}");
 			/*
 			 * or.tileCount = is.tiles.size(); if (or.tileCount != 0) { or.tiles
 			 * = new Tile.ByReference(); Tile[] otl = (Tile[])
