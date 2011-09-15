@@ -77,7 +77,7 @@ public class JSEnigmaWriter {
 	public static ScriptEngine engine;
 	private static String[] jsfiles = { "/Main/system.js","/Graphics/Canvas/Canvasmain.js", "/Graphics/Canvas/Canvasdrawing.js", "/Parser/parse_basics.js",
 			"/Parser/parse_system.js", "/Parser/parser_tgmg.js", "/Parser/parser.js", "/Platform/dialog.js", "/Main/object.js",
-			"/Universal/actions.js", "/Universal/math.js", "/Universal/input.js" };
+			/*"/Universal/actions.js",*/ "/Universal/math.js", "/Universal/input.js" };
 	private static String eventname;
 	private static String currentObject;
 
@@ -206,6 +206,7 @@ public class JSEnigmaWriter {
 				.toArray(new org.lateralgm.resources.Script[0]);
 		for (int s = 0; s < isl.length; s++) {
 			org.lateralgm.resources.Script io = isl[s];
+			eventname=io.getName();
 			loadingfile.write("scriptid_" + io.getId() + "=" + io.getName()
 					+ "=function() {");
 			loadingfile.write(convertCode(io.get(PScript.CODE).toString()));
@@ -352,6 +353,13 @@ public class JSEnigmaWriter {
 
 	private static void populateRooms(BufferedWriter loadingfile)
 			throws IOException, ScriptException {
+		int room_idmax=0;
+		String roomorder="";
+		
+		/*
+		 * Get the rooms in order
+		 */
+		
 		ArrayList<org.lateralgm.resources.Room> irooms = new ArrayList<org.lateralgm.resources.Room>();
 		Enumeration<?> e = root.preorderEnumeration();
 		while (e.hasMoreElements()) {
@@ -363,17 +371,34 @@ public class JSEnigmaWriter {
 					irooms.add(r); // is this null check even necessary?
 			}
 		}
+		
+		/*
+		 * Loop over all the rooms
+		 */
 
 		int size = irooms.size();
 		if (size == 0)
 			return;
-
+		
+		loadingfile.write("\n var roomarray = {");
 		org.lateralgm.resources.Room[] irl = irooms
 				.toArray(new org.lateralgm.resources.Room[0]);
+		
 		for (int s = 0; s < size; s++) {
 			org.lateralgm.resources.Room is = irl[s];
-			loadingfile.write("\nenigma.rooms." + is.getName()
-					+ " = function() {");
+			
+			
+			if (s>0) {loadingfile.write(",");roomorder+=",";}
+			roomorder+=""+is.getId();
+			//is this the max room id?
+			if (is.getId() > room_idmax) room_idmax=is.getId();
+			
+			/*
+			 * Start writing room code
+			 */
+			loadingfile.write("\n " + is.getId()
+					+ ":function() {");
+			
 			loadingfile.write("this.name=\"" + is.getName() + "\"; this.id="
 					+ is.getId() + "; this.caption=\"" + is.get(PRoom.CAPTION)
 					+ "\"; this.width=" + is.get(PRoom.WIDTH)
@@ -392,7 +417,7 @@ public class JSEnigmaWriter {
 
 			loadingfile.write("\nthis.creationCode=function(){");
 			loadingfile.write(convertCode("" + is.get(PRoom.CREATION_CODE)));
-			loadingfile.write("}");
+			loadingfile.write("};\n");
 
 			/*
 			 * or.backgroundDefCount = is.backgroundDefs.size(); if
@@ -438,7 +463,7 @@ public class JSEnigmaWriter {
 				 * iv.properties.get(PView.SPEED_V); ov.objectId =
 				 * toId(iv.properties.get(PView.OBJECT),-1); } }
 				 */
-
+			loadingfile.write("this.gotome=function() {");
 			int instanceCount = is.instances.size();
 			if (instanceCount != 0) {
 				for (int i = 0; i < instanceCount; i++) {
@@ -455,6 +480,7 @@ public class JSEnigmaWriter {
 					// ii.properties.get(PInstance.CREATION_CODE);
 				}
 			}
+			loadingfile.write("}; this.gotome();");
 			/*
 			 * or.tileCount = is.tiles.size(); if (or.tileCount != 0) { or.tiles
 			 * = new Tile.ByReference(); Tile[] otl = (Tile[])
@@ -473,10 +499,11 @@ public class JSEnigmaWriter {
 			 * it.properties.get(PTile.ID); ot.locked =
 			 * it.properties.get(PTile.LOCKED); } // tile } // tiles
 			 */
-			loadingfile.write("};\n");
+			loadingfile.write("}\n");
 		} // rooms
-		loadingfile.write("var room = new enigma.rooms."
-				+ irooms.get(0).getName() + "();"); // for now
+		loadingfile.write("}; room_idmax="+room_idmax+";\n");
+		loadingfile.write("var roomorder= ["+roomorder+"];");
+		loadingfile.write("enigma.global.room_goto_first();"); // for now
 	}
 
 	private static void populateObjects(BufferedWriter loadingfile)
@@ -489,13 +516,16 @@ public class JSEnigmaWriter {
 				.toArray(new org.lateralgm.resources.GmObject[0]);
 		for (int s = 0; s < size; s++) {
 			org.lateralgm.resources.GmObject io = iol[s];
-
+			
+			String linkfunction="\nenigma.objects." + io.getName()+".prototype.$link=function(){\n";
+			String unlinkfunction="\nenigma.objects." + io.getName()+".prototype.$unlink=function(){\n";
+			
 			currentObject = io.getName();
 			loadingfile.write("\nenigma.objects." + io.getName()
 					+ " = function(id, oid, x, y) {");
 			loadingfile
 					.write("this.prototype = new enigma.objects.object_locals(id, oid, x, y);");
-			loadingfile.write(" this.id=id;	this.x=x; this.y=y;");
+			loadingfile.write(" this.id=id; this.object_index=oid;	this.x=x; this.y=y;");
 			loadingfile.write("this.sprite_index = "
 					+ toId(io.get(PGmObject.SPRITE), -1) + "; this.visible = "
 					+ io.get(PGmObject.VISIBLE) + "; this.solid = "
@@ -539,14 +569,21 @@ public class JSEnigmaWriter {
 						loadingfile.write(" this.event_" + ie.mainId + "_" + id
 								+ "();");
 					else
-						// link in the event
-						loadingfile
-								.write("enigma.system.event_loop.link_event(this.id,"
+					{// link in the event
+						linkfunction+="enigma.system.event_loop.link_event(this.id,"
 										+ ie.mainId
 										+ ","
 										+ id
 										+ ",this.event_"
-										+ ie.mainId + "_" + id + ",this);\n");
+										+ ie.mainId + "_" + id + ",this);\n";
+						// unlink the event
+						unlinkfunction+="enigma.system.event_loop.unlink_event(this.id,"
+										+ ie.mainId
+										+ ","
+										+ id
+										+ ",this.event_"
+										+ ie.mainId + "_" + id + ",this);\n";
+						}
 				}
 			}
 			// write the draw event
@@ -558,7 +595,14 @@ public class JSEnigmaWriter {
 			loadingfile.write("enigma.classes.depth(this, "
 					+ io.get(PGmObject.DEPTH) + ");"); // do this last after
 														// draw event
+			
+			
+			loadingfile.write("\nthis.$link();");
+			
 			loadingfile.write("};\n");// end of object
+			//now write link and unlink
+			loadingfile.write(linkfunction+"};\n ");
+			loadingfile.write(unlinkfunction+"};\n");
 		}
 	}
 
@@ -581,9 +625,8 @@ public class JSEnigmaWriter {
 		}
 
 		if (!output.equals("No error")) {
-			code = code.replace("\r\n", " ").replace("\n", " ").replace("\"",
-					"\\\"");
-			System.out.println("<code>\n" + code + "</code>");
+			//code = code.replace("\r\n", " ").replace("\n", " ").replace("\"","\\\"");
+			System.out.println("\n\n<code>\n" + code + "</code>\n\n");
 			System.out.println("Error " + numberOfErrors + ":"
 					+ engine.get("error").toString() + " in " + currentObject
 					+ " event:" + eventname);
