@@ -44,3 +44,7 @@ enigma.global.draw_sprite_ext=function(sprite_index,image_index,
         xx,yy,image_xscale,image_yscale,image_angle,image_blend,image_alpha){
 	context.drawImage(spritestructarray[sprite_index].image, xx, yy);
 };
+
+enigma.global.draw_text=function(x,y,text){
+	context.fillText(text, x, y);
+};
