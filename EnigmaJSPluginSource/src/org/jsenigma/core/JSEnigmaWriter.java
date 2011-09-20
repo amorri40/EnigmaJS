@@ -80,9 +80,10 @@ public class JSEnigmaWriter {
 			"/Parser/parse_system.js", "/Parser/parser_tgmg.js",
 			"/Parser/parser.js", "/Platform/dialog.js", "/Main/object.js",
 			/* "/Universal/actions.js", */"/Universal/math.js",
-			"/Universal/input.js", "/Universal/rooms.js" };
+			"/Universal/input.js", "/Universal/rooms.js", "/Universal/move_functions.js" };
 	private static String eventname;
 	private static String currentObject;
+	public static String[] globalvariables={"fa_left","fa_center","fa_right","fa_top","fa_middle","fa_bottom"};
 
 	public static void initJavascript() throws FileNotFoundException {
 		factory = new ScriptEngineManager();
@@ -508,6 +509,7 @@ public class JSEnigmaWriter {
 		loadingfile.write("}; room_idmax=" + room_idmax + ";\n");
 		loadingfile.write("var roomorder= [" + roomorder + "];");
 		loadingfile.write("enigma.global.room_goto_first();"); // for now
+		//room_first, room_last
 	}
 
 	private static void populateObjects(BufferedWriter loadingfile)
@@ -530,7 +532,7 @@ public class JSEnigmaWriter {
 			loadingfile.write("\nenigma.objects." + io.getName()
 					+ " = function(id, oid, x, y) {");
 			loadingfile
-					.write("this.prototype = new enigma.objects.object_locals(id, oid, x, y);");
+					.write("this.prototype = new enigma.objects.object_locals(id, oid, x, y); enigma.classes.object_planar(this,x,y);");
 			loadingfile
 					.write(" this.id=id; this.object_index=oid;	this.x=x; this.y=y;");
 			loadingfile.write("this.sprite_index = "
@@ -660,6 +662,11 @@ public class JSEnigmaWriter {
 			// fixed = fixed.replace("{", ";{"); // remove this asap
 			fixed = fixed
 					.replace("this.argument_relative", "argument_relative");
+			//fix global variable
+			for (String global : globalvariables) {
+				fixed=fixed.replace("this."+global, global);
+			}
+			
 			return fixed;
 		}
 	}

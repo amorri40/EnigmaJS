@@ -48,3 +48,6 @@ along with this code. If not, see <http://www.gnu.org/licenses/>
   g['false'] = false;
   g['NULL'] = null;
 })();
+
+enigma.global.point_direction=function(x1,y1,x2,y2) 
+{ return ((Math.atan2(y1-y2,x2-x1)*(180/Math.PI))+360)%360; }
