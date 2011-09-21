@@ -870,7 +870,7 @@ public class JSEnigmaWriter {
 					+ ",bbRight:" + is.get(PSprite.BB_RIGHT) + ",bbTop:"
 					+ is.get(PSprite.BB_TOP) + ",bbBottom:"
 					+ is.get(PSprite.BB_BOTTOM));
-			loadingfile.write(",subImageCount:" + is.subImages.size());
+			loadingfile.write(",subImageCount:" + is.subImages.size()+",width:"+is.subImages.getWidth()+",height:"+is.subImages.getHeight()+",preload:"+is.get(PSprite.PRELOAD));
 			int subimages = is.subImages.size();
 			if (subimages == 0)
 				continue;
