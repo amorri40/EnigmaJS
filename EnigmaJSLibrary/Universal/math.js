@@ -1,6 +1,6 @@
 /*******************************************************************************
- * ***********************************************************\ Copyright (C)
- * 2011 Josh Ventura
+ *  Copyright (C) 2011 Josh Ventura
+ *  Copyright (C) 2011 Alasdair Morrison
  * 
  * This file is a part of the ENIGMA Development Environment.
  * 
