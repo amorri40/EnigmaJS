@@ -291,12 +291,16 @@ public class JSEnigmaWriter {
 			loadingfile.write(",transparent:" + ib.get(PBackground.TRANSPARENT)
 					+ ",smoothEdges:" + ib.get(PBackground.SMOOTH_EDGES)
 					+ ",preload:" + ib.get(PBackground.PRELOAD));
-
+			
+			
+		
 			File out = new File("./EnigmaJSLibrary/res/backgrounds/"
 					+ ib.getName() + ".png");
 			BufferedImage img = ib.getBackgroundImage();
-
+			if (img !=null) {
+				loadingfile.write(",width:"+img.getWidth()+",height:"+img.getHeight());
 			ImageIO.write(img, "PNG", out);
+			}
 
 			loadingfile.write("}");
 		}
@@ -873,7 +877,7 @@ public class JSEnigmaWriter {
 			loadingfile.write(",subImageCount:" + is.subImages.size()+",width:"+is.subImages.getWidth()+",height:"+is.subImages.getHeight()+",preload:"+is.get(PSprite.PRELOAD));
 			int subimages = is.subImages.size();
 			if (subimages == 0)
-				continue;
+				{loadingfile.write("}"); continue;}
 
 			/*
 			 * Create an offscreen canvas
