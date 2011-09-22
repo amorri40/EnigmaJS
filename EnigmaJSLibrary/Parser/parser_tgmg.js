@@ -18,3 +18,8 @@ writeEnigmaJSOutputFile=function() {
 	}
 	return outputfile;
 };
+
+getNumberOfMissingFunctions=function() {
+	if (missing_functions.length===0) return "None";
+	return missing_functions.length;
+};

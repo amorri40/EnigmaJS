@@ -25,17 +25,21 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +83,7 @@ public class JSEnigmaWriter {
 			"/Graphics/Canvas/Canvasdrawing.js", "/Parser/parse_basics.js",
 			"/Parser/parse_system.js", "/Parser/parser_tgmg.js",
 			"/Parser/parser.js", "/Platform/dialog.js", "/Main/object.js",
-			/* "/Universal/actions.js", */"/Universal/math.js",
+			 "/Universal/actions.js", "/Universal/math.js",
 			"/Universal/input.js", "/Universal/rooms.js", "/Universal/move_functions.js" };
 	private static String eventname;
 	private static String currentObject;
@@ -101,12 +105,15 @@ public class JSEnigmaWriter {
 		}
 	}
 
+	public static String numberMissing="None";
+	
 	public static void writeResources() throws Exception {
 		i = LGM.currentFile;
 		root = LGM.root;
 		System.out.println("Starting convert to html5!");
 		numberOfErrors = 0;
 		initJavascript();
+		getResourceNames();
 		BufferedWriter loadingfile = new BufferedWriter(new FileWriter(
 				"./EnigmaJSLibrary/ide_edit/ideedit_loading.js"));
 		populateSprites(loadingfile);
@@ -121,8 +128,11 @@ public class JSEnigmaWriter {
 		loadingfile.close();
 		engine.eval("missing=getMissingFunctions();");
 		engine.eval("output=writeEnigmaJSOutputFile();");
+		engine.eval("numberMissing=getNumberOfMissingFunctions();");
 		System.out.println(engine.get("missing").toString());
 
+		numberMissing=engine.get("numberMissing").toString();
+		
 		BufferedWriter outputfile = new BufferedWriter(new FileWriter(
 				"./enigmajsoutput.txt"));
 		outputfile.write(numberOfErrors + "\n");
@@ -131,7 +141,7 @@ public class JSEnigmaWriter {
 
 		if (numberOfErrors > 0)
 			System.out.println("Failed to convert with " + numberOfErrors
-					+ " errors");
+					+ " errors and "+numberMissing+" missing functions");
 		else
 			System.out.println("Convert succesful");
 	}
@@ -427,6 +437,7 @@ public class JSEnigmaWriter {
 			loadingfile.write("\ncreationCode:function(){");
 			loadingfile.write(convertCode("" + is.get(PRoom.CREATION_CODE)));
 			loadingfile.write("},\n");
+			
 
 			/*
 			 * or.backgroundDefCount = is.backgroundDefs.size(); if
@@ -473,21 +484,28 @@ public class JSEnigmaWriter {
 				 * toId(iv.properties.get(PView.OBJECT),-1); } }
 				 */
 			loadingfile.write("gotome:function() {room=this.id;");
+			
+			/*
+			 * write instances
+			 */
 			int instanceCount = is.instances.size();
 			if (instanceCount != 0) {
+				
 				for (int i = 0; i < instanceCount; i++) {
 					org.lateralgm.resources.sub.Instance ii = is.instances
 							.get(i);
 					String instancename = ((ResourceReference<?>) ii.properties
 							.get(PInstance.OBJECT)).get().getName();
-					loadingfile.write("\n new enigma.objects." + instancename
+					
+					loadingfile.write("enigma.global.instances["+ii.properties.get(PInstance.ID) +"]= new enigma.objects." + instancename
 							+ "(" + ii.properties.get(PInstance.ID) + ","
 							+ toId(ii.properties.get(PInstance.OBJECT), -1)
 							+ "," + ii.properties.get(PInstance.X) + ","
-							+ ii.properties.get(PInstance.Y) + ");");
+							+ ii.properties.get(PInstance.Y) + ");\n");
 					// oi.creationCode =
 					// ii.properties.get(PInstance.CREATION_CODE);
 				}
+				
 			}
 			loadingfile.write("}");
 			/*
@@ -515,18 +533,52 @@ public class JSEnigmaWriter {
 		loadingfile.write("enigma.global.room_goto_first();"); // for now
 		//room_first, room_last
 	}
-
+	
+	
+	
+	/*
+	 * populateObject: write the object data to javascript
+	 */
 	private static void populateObjects(BufferedWriter loadingfile)
 			throws Exception {
+		
+		String objectstructarray="var objectstructarray = {";
+		
 		int size = i.gmObjects.size();
 		if (size == 0)
-			return;
+			{
+			loadingfile.write("var objectstructarray = {}; //no objects \n");
+			return;}
 
+		
 		org.lateralgm.resources.GmObject[] iol = i.gmObjects
 				.toArray(new org.lateralgm.resources.GmObject[0]);
 		for (int s = 0; s < size; s++) {
 			org.lateralgm.resources.GmObject io = iol[s];
 
+			
+			/*
+			 * First write the objectstructarray used for manipulating resources at runtime to a string
+			 */
+			
+			if (s != 0)
+				objectstructarray+=",";
+			objectstructarray+=(io.getId() + ":{name:\"" + io.getName()
+					+ "\",id:" + io.getId());
+			objectstructarray+=(",sprite_index:"
+					+ toId(io.get(PGmObject.SPRITE), -1) + ",visible:"
+					+ io.get(PGmObject.VISIBLE) + ",solid:"
+					+ io.get(PGmObject.SOLID) + ",persistent:"
+					+ io.get(PGmObject.PERSISTENT) + ",parent:"
+					+ toId(io.get(PGmObject.PARENT), -100) + ",mask:"
+					+ toId(io.get(PGmObject.MASK), -1)+ ",depth:"+io.get(PGmObject.DEPTH));
+			objectstructarray+=",actualobject:enigma.objects." + io.getName();
+			objectstructarray+= "}";
+			
+			/*
+			 * Now write proper object and events
+			 */
+			
 			String linkfunction = "\nenigma.objects." + io.getName()
 					+ ".prototype.$link=function(){\n";
 			String unlinkfunction = "\nenigma.objects." + io.getName()
@@ -538,7 +590,7 @@ public class JSEnigmaWriter {
 			loadingfile
 					.write("this.prototype = new enigma.objects.object_locals(id, oid, x, y); enigma.classes.object_planar(this,x,y);");
 			loadingfile
-					.write(" this.id=id; this.object_index=oid;	this.x=x; this.y=y;");
+					.write(" this.id=id; this.object_index=oid;	this.x=x; this.y=y; this.alarm=[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1];");
 			loadingfile.write("this.sprite_index = "
 					+ toId(io.get(PGmObject.SPRITE), -1) + "; this.visible = "
 					+ io.get(PGmObject.VISIBLE) + "; this.solid = "
@@ -589,7 +641,7 @@ public class JSEnigmaWriter {
 					loadingfile.write(convertCode(code));
 					loadingfile.write("};");
 					if (ie.mainId == 0) // create event?
-						loadingfile.write(" this.event_" + ie.mainId + "_" + id
+						loadingfile.write(" enigma.global.current_instance=this; this.event_" + ie.mainId + "_" + id
 								+ "();");
 
 					else if (ie.mainId!=8) {// link in the event
@@ -624,9 +676,10 @@ public class JSEnigmaWriter {
 
 			loadingfile.write("};\n");// end of object
 			// now write link and unlink
-			loadingfile.write(linkfunction + "};\n ");
-			loadingfile.write(unlinkfunction + "};\n");
+			loadingfile.write(linkfunction + " enigma.system.event_loop.link_event(this.id,100000,0,null,this);};\n ");
+			loadingfile.write(unlinkfunction + " enigma.system.event_loop.unlink_event(this.id,100000,0,null,this);};\n");
 		}
+		loadingfile.write(objectstructarray+"};\n");
 	}
 
 	private static String convertCode(String code) throws FileNotFoundException {
@@ -663,12 +716,21 @@ public class JSEnigmaWriter {
 			fixed = fixed.replace("this.true", "true").replace("this.false",
 					"false");
 			fixed = fixed.replace("var (", "(");
-			// fixed = fixed.replace("{", ";{"); // remove this asap
+			
 			fixed = fixed
 					.replace("this.argument_relative", "argument_relative");
-			//fix global variable
+			/*
+			 * fix global variable, to remove the this.
+			 */
 			for (String global : globalvariables) {
 				fixed=fixed.replace("this."+global, global);
+			}
+			
+			/*
+			 * fix resource names so it writes the id rather than the name
+			 */
+			for (String name : resourcenames.keySet()) {
+				fixed = fixed.replace("this."+name,resourcenames.get(name));
 			}
 			
 			return fixed;
@@ -691,7 +753,7 @@ public class JSEnigmaWriter {
 	private static int numberOfIfs = 0; // gm allows multipe else actions after
 	// 1 if, so its important to track the
 	// number
-	private static int numberOfErrors = 0;
+	public static int numberOfErrors = 0;
 
 	private static String getActionsCode(ActionContainer ac) {
 
@@ -956,4 +1018,96 @@ public class JSEnigmaWriter {
 	public static int ARGBtoRGBA(int argb) {
 		return ((argb & 0x00FFFFFF) << 8) | (argb >>> 24);
 	}
+	
+	/*
+	 * get the resource names and put int he hashtable
+	 */
+	public static Hashtable<String,String> resourcenames = new Hashtable<String,String>();
+	public static void getResourceNames() {
+		org.lateralgm.resources.GmObject[] iol = LGM.currentFile.gmObjects.toArray(new org.lateralgm.resources.GmObject[0]);
+		for (int s = 0; s < iol.length; s++) {
+			org.lateralgm.resources.GmObject io = iol[s];
+			resourcenames.put(io.getName(), " "+io.getId()+" ");
+		}
+		
+		/*
+		 * Sprites
+		 */
+		org.lateralgm.resources.Sprite[] isl = LGM.currentFile.sprites.toArray(new org.lateralgm.resources.Sprite[0]);
+		for (int s = 0; s < isl.length; s++)
+			{
+			org.lateralgm.resources.Sprite is = isl[s];
+			resourcenames.put(is.getName(), " "+is.getId()+" ");
+			}
+		
+		/*
+		 * Sounds
+		 */
+		org.lateralgm.resources.Sound[] isndl = LGM.currentFile.sounds.toArray(new org.lateralgm.resources.Sound[0]);
+		for (int s = 0; s < isndl.length; s++)
+			{
+			org.lateralgm.resources.Sound is = isndl[s];
+			resourcenames.put(is.getName(), " "+is.getId()+" ");
+			}
+		
+		/*
+		 * Backgrounds
+		 */
+		org.lateralgm.resources.Background[] ibl = LGM.currentFile.backgrounds.toArray(new org.lateralgm.resources.Background[0]);
+		for (int s = 0; s < ibl.length; s++)
+			{
+			org.lateralgm.resources.Background is = ibl[s];
+			resourcenames.put(is.getName(), " "+is.getId()+" ");
+			}
+		
+		/*
+		 * Paths
+		 */
+		org.lateralgm.resources.Path[] ipl = LGM.currentFile.paths.toArray(new org.lateralgm.resources.Path[0]);
+		for (int s = 0; s < ipl.length; s++)
+			{
+			org.lateralgm.resources.Path is = ipl[s];
+			resourcenames.put(is.getName(), " "+is.getId()+" ");
+			}
+		
+		/*
+		 * Fonts
+		 */
+		org.lateralgm.resources.Font[] ifl = LGM.currentFile.fonts.toArray(new org.lateralgm.resources.Font[0]);
+		for (int s = 0; s < ifl.length; s++)
+			{
+			org.lateralgm.resources.Font is = ifl[s];
+			resourcenames.put(is.getName(), " "+is.getId()+" ");
+			}
+		
+		/*
+		 * Timelines
+		 */
+		org.lateralgm.resources.Timeline[] itl = LGM.currentFile.timelines.toArray(new org.lateralgm.resources.Timeline[0]);
+		for (int s = 0; s < itl.length; s++)
+			{
+			org.lateralgm.resources.Timeline is = itl[s];
+			resourcenames.put(is.getName(), " "+is.getId()+" ");
+			}
+		
+		/*
+		 * Rooms
+		 */
+		org.lateralgm.resources.Room[] irl = LGM.currentFile.rooms.toArray(new org.lateralgm.resources.Room[0]);
+		for (int s = 0; s < irl.length; s++)
+			{
+			org.lateralgm.resources.Room is = irl[s];
+			resourcenames.put(is.getName(), " "+is.getId()+" ");
+			}
+		
+		org.lateralgm.resources.Script[] irs = LGM.currentFile.scripts.toArray(new org.lateralgm.resources.Script[0]);
+		for (int s = 0; s < irs.length; s++)
+			{
+			org.lateralgm.resources.Script is = irs[s];
+			resourcenames.put(is.getName(), " "+is.getId()+" ");
+			}
+	}
+	
+	
+	
 }

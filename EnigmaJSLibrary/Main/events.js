@@ -86,8 +86,8 @@ var rarray = (function()
     var rkey = function(x) { return keys[x] ? keys[x] : "<invalid>"; }
     
     
-    nev = new enigma_event("Alarm %s", null,
-      "{ if ((alarm[%1] == -1) or (alarm[%1]--)) return 0; }"
+    nev = new enigma_event("Alarm %s",
+      function(id2,whom){ if (whom.alarm[id2]==0)return true; else if (whom.alarm[id2]>0) whom.alarm[id2]--; return false;}
     ); register_event_stacked(nev,2,rnum);
     
     nev = new enigma_event("Key Press %s",
@@ -205,7 +205,7 @@ var rarray = (function()
     nev = new enigma_event("Step");
       register_event(nev,3,0);
     
-    nev = new enigma_event("Locals sweep", null, null, null, "enigma::propagate_locals(this);");
+    nev = new enigma_event("Locals sweep", null, null, null, null,null, function() {for (inst in enigma.global.instances) { enigma.global.propagate_locals(enigma.global.instances[inst]); }});
       register_event(nev,100000,0);
     
     // Other events
@@ -224,7 +224,7 @@ var rarray = (function()
     // Collisions stuck here for some reason, possibly so that you
     // can deduct lives/health right before the "No more Lives" event
     
-    nev = new enigma_event("Collision with %1", function() { return instance_number(this.id2); },
+    nev = new enigma_event("Collision with %1", function() { return enigma.global.instance_number(this.id2); },
       "(instance_other = enigma::place_meeting_inst(x,y,%1))",
       "if (solid || ENIGMA_glaccess(other)->solid) {x = xprevious; y = yprevious;}"
     ); register_event_stacked(nev, 4);
@@ -266,8 +266,9 @@ var rarray = (function()
           
             for (ENIGMA_INSTANCE_EVENT_ITERATOR in linear_events[lei].callbacks)
               {
-            	if (!linear_events[lei].supercheck || linear_events[lei].supercheck(linear_events[lei].callbacks[ENIGMA_INSTANCE_EVENT_ITERATOR].id2))
-            	{enigma.global.current_instance=linear_events[lei].callbacks[ENIGMA_INSTANCE_EVENT_ITERATOR].whom;
+            	var whom=linear_events[lei].callbacks[ENIGMA_INSTANCE_EVENT_ITERATOR].whom;
+            	if (!linear_events[lei].supercheck || linear_events[lei].supercheck(linear_events[lei].callbacks[ENIGMA_INSTANCE_EVENT_ITERATOR].id2,whom))
+            	{enigma.global.current_instance=whom;
             		linear_events[lei].callbacks[ENIGMA_INSTANCE_EVENT_ITERATOR]();}
               }
       }
@@ -278,17 +279,19 @@ var rarray = (function()
       if (!ev1) return;
       var ev2 = ev1[id2];
       
+      if (callback==null) callback=function(){}; //no point binding a callback if it has a handler
+      
       if (!ev2) {
     	  // stacked event
     	  linear_events[ev1.lin_id].callbacks[id] = callback.bind(whom);
     	  linear_events[ev1.lin_id].callbacks[id].id2=id2;
-    	  linear_events[ev1.lin_id].callbacks[id].whom=whom; //tgmg temp
+    	  linear_events[ev1.lin_id].callbacks[id].whom=whom;
       }
       else {
     	 
       linear_events[ev2.lin_id].callbacks[id] = callback.bind(whom);
       linear_events[ev2.lin_id].callbacks[id].id2=id2;
-      linear_events[ev2.lin_id].callbacks[id].whom=whom; //tgmg
+      linear_events[ev2.lin_id].callbacks[id].whom=whom;
       }
     }
   ,

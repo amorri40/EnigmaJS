@@ -48,11 +48,12 @@ enigma.global.action_sound=function(sound, loop) {
 }
 
 enigma.global.action_set_vspeed=function(newvspeed) {
-    /*if (argument_relative) {
-        this.vspeed+=newvspeed;
+	var instance=enigma.global.current_instance;
+    if (argument_relative) {
+    	instance.vspeed+=newvspeed;
     } else
-        this.vspeed=newvspeed;*/
-}
+    	instance.vspeed=newvspeed;
+};
 
 enigma.global.action_kill_object=function() { instance_destroy(); }
 
@@ -99,26 +100,27 @@ enigma.global.action_sleep=function(milliseconds, redraw) {
 }
 
 enigma.global.action_if_number=function( object,number,operation) {
-	/*switch (operation)
+	switch (operation)
 	{
 	    case 0: return (enigma.global.instance_number(object) == number); break;
 	    case 1:	return (enigma.global.instance_number(object) < number); break;
 	    case 2: return (enigma.global.instance_number(object) > number); break;
 	    default: return false; //invalid operation
-  }*/
+  }
 };
 
 enigma.global.action_set_alarm=function(steps,alarmno)
 {
-  /*if (argument_relative)
-    this.alarm[alarmno] += (steps);
+	var instance=enigma.global.current_instance;
+  if (argument_relative)
+	  instance.alarm[alarmno] += (steps);
   else
-    this.alarm[alarmno] = (steps);*/
-}
+	  instance.alarm[alarmno] = (steps);
+};
 
 enigma.global.action_color=function(color) {
-	//enigma.global.draw_set_color(color);
-}
+	enigma.global.draw_set_color(color);
+};
 
 enigma.global.action_set_life=function(newlives) {
     if (argument_relative) lives+= newlives;
@@ -127,13 +129,14 @@ enigma.global.action_set_life=function(newlives) {
 
 enigma.global.action_change_object=function() {
 	//
-}
+};
 
 enigma.global.action_draw_score=function(x,y,caption) {
-    /*if (argument_relative) {
-    	enigma.global.draw_text(x+this.x,y+this.y,caption+(score));
-    } else enigma.global.draw_text(x,y,caption+(score));*/
-}
+	var instance=enigma.global.current_instance;
+    if (argument_relative) {
+    	enigma.global.draw_text(x+instance.x,y+instance.y,caption+(score));
+    } else enigma.global.draw_text(x,y,caption+(score));
+};
 
 enigma.global.action_set_caption=function(score,scoreCaption,lives,livesCaption,health,healthCaption) {
     show_score=score;
@@ -176,15 +179,16 @@ enigma.global.action_draw_health=function(x1,y1,x2,y2,backColor,barColor) {
 	};
 	
 	enigma.global.action_draw_life_images=function(x,y,image) {
-	    /*var actualX=x, actualY=y;
+		var instance=enigma.global.current_instance;
+		var actualX=x, actualY=y;
 	    var width = enigma.global.sprite_get_width(image);
 
 	    if (argument_relative) {
-	        actualX+=this.x;
-	        actualY+=this.y;
+	        actualX+=instance.x;
+	        actualY+=instance.y;
 	    }
 
 	    for (var i=0; i<lives; i++)
-	        enigma.global.draw_sprite(image,-1, actualX+(i*width), actualY);*/
+	        enigma.global.draw_sprite(image,-1, actualX+(i*width), actualY);
 	};
 	

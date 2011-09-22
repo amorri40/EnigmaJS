@@ -92,6 +92,8 @@ public class JSEnigmaRunner implements ActionListener {
 					ef.progress(10, "Writing game to html5");
 					JSEnigmaWriter.writeResources();
 					File f = new File("EnigmaJS"+File.separator+"CanvasVersion.html");
+					ef.ta.append("Errors: "+JSEnigmaWriter.numberOfErrors+"\n");
+					ef.ta.append("Missing functions: "+JSEnigmaWriter.numberMissing+"\n");
 					ef.ta.append("Finished convert, play your game using this url: "+f.getAbsolutePath()+"\n");
 					ef.progress(100, "Finished");
 				} catch (Exception e) {

@@ -45,6 +45,10 @@ enigma.global.draw_sprite_ext=function(sprite_index,image_index,
 	context.drawImage(spritestructarray[sprite_index].image, xx, yy);
 };
 
+enigma.global.draw_sprite=function(sprite, subimg, x, y)  {
+	context.drawImage(spritestructarray[sprite].image, x, y);
+};
+
 enigma.global.draw_text=function(x,y,text){
 	context.fillText(text, x, y);
 };
@@ -88,4 +92,9 @@ enigma.global.draw_line=function(x,y,xx,yy){
 	context.moveTo(x, y);
 	  context.lineTo(xx, yy);
 	  context.stroke();
+};
+
+enigma.global.draw_set_color=function(color) {
+	//presume color is correctly formatting string
+	//context.fillStyle=color;
 };
